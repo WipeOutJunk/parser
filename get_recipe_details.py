@@ -27,7 +27,7 @@ def get_recipe_details(recipe_url):
 
             ingredients_list.append(f"{name}: {quantity} {unit}")
 
-         # Извлекаем БЖУ и калории по атрибуту itemprop
+        # Извлекаем БЖУ и калории по атрибуту itemprop
         nutrition_info = {
             'calories': '',
             'proteins': '',
@@ -40,15 +40,31 @@ def get_recipe_details(recipe_url):
         nutrition_info['fats'] = soup.find('div', itemprop='fatContent').find('span', class_='nutrient_value__dd48k').text.strip()
         nutrition_info['carbohydrates'] = soup.find('div', itemprop='carbohydrateContent').find('span', class_='nutrient_value__dd48k').text.strip()
 
+        # Извлекаем инструкции по приготовлению
+        instructions = []
+        instruction_steps = soup.find_all('div', class_='markup_p__QDGpJ')
+        
+        description = ''
+        if instruction_steps:
+            # Первый шаг в описание
+            first_step = instruction_steps[0].find('span', class_='markup_text__F9WKe').text.strip()
+            description = first_step
+
+            # Остальные шаги
+            for i, step in enumerate(instruction_steps[1:], start=1):
+                instruction_text = step.find('span', class_='markup_text__F9WKe').text.strip()
+                instructions.append(f"Шаг {i}: {instruction_text}")
+
         recipe_details = {
             'title': title,
+            'description': description,
             'ingredients': ingredients_list,
             'proteins': nutrition_info['proteins'],
             'fats': nutrition_info['fats'],
             'carbohydrates': nutrition_info['carbohydrates'],
-            'calories': nutrition_info['calories']
+            'calories': nutrition_info['calories'],
+            'instructions': instructions
         }
-
 
         return recipe_details
     else:
