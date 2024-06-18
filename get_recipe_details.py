@@ -10,6 +10,11 @@ def get_recipe_details(recipe_url):
         # Извлекаем название рецепта
         title = soup.find('h1', class_='title_main__ok7t1').text.strip()
 
+        # Извлекаем титульное изображение из элемента link
+        link_tag = soup.find('link', itemprop='url')
+        title_img = link_tag['href'] if link_tag else 'No image found'
+
+
         # Извлекаем список ингредиентов
         ingredients_table = soup.find('table', class_='ingredientsTable_table__pamnR ingredientsCalculator_ingredientsTable__hwuQx')
         ingredients = ingredients_table.find_all('tr', class_='ingredient')
@@ -42,7 +47,7 @@ def get_recipe_details(recipe_url):
 
         # Извлекаем инструкции по приготовлению
         instructions = []
-        instruction_steps = soup.find_all('div', class_='markup_p__QDGpJ')
+        instruction_steps = soup.find_all('div', class_='stepByStepPhotoRecipe_step__ygqQw')
         
         description = ''
         if instruction_steps:
@@ -55,8 +60,18 @@ def get_recipe_details(recipe_url):
                 instruction_text = step.find('span', class_='markup_text__F9WKe').text.strip()
                 instructions.append(f"Шаг {i}: {instruction_text}")
 
+
+                image_tag = step.find('img', class_='photo')
+                image_url = image_tag['src'] if image_tag else 'No image found'
+
+                instructions.append({
+                    'step': f"Шаг {i}: {instruction_text}",
+                    'image': image_url
+                })
+
         recipe_details = {
             'title': title,
+            'title_img': title_img,
             'description': description,
             'ingredients': ingredients_list,
             'proteins': nutrition_info['proteins'],
