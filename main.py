@@ -1,8 +1,9 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from get_recipe_details import get_recipe_details
 import json
-
+import subprocess
 # Количество страниц
 total_pages = 1
 
@@ -32,7 +33,28 @@ for page in range(1, total_pages + 1):
 print(f"Всего найдено рецептов: {len(all_recipe_urls)}")
 
 # Извлечение информации для каждого рецепта
+all_recipe_details = []
 for recipe_url in all_recipe_urls:
     details = get_recipe_details(recipe_url)
     if details:
-        print(json.dumps(details, indent=4, ensure_ascii=False))
+        # print(json.dumps(details, indent=4, ensure_ascii=False)) // вывод в консоль
+        all_recipe_details.append(details)
+
+# Сохранение данных в JSON-файл
+output_dir = "output"
+os.makedirs(output_dir, exist_ok=True)
+output_file = os.path.join(output_dir, "recipes.json")
+
+with open(output_file, "w", encoding="utf-8") as f:
+    json.dump(all_recipe_details, f, ensure_ascii=False, indent=4)
+
+print(f"Данные сохранены в {output_file}, внутри {output_dir}")
+# Запрос подтверждения перед отправкой данных в базу данных
+confirm = input("Вы уверены, что хотите отправить данные в базу данных? (y/n): ").strip().lower()
+if confirm == 'y':
+    result = subprocess.run(['python', 'upload_to_db.py'], capture_output=True, text=True)
+    print(result.stdout)
+    if result.stderr:
+        print(result.stderr)
+else:
+    print("Отправка данных в базу данных отменена.")
